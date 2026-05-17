@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: anonymous-chat-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: TOKEN
+        sync: false
+      - key: WEBHOOK_URL
+        # Set this to the render URL if using webhooks, or leave empty if using Long Polling.
+        sync: false
