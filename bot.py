@@ -12,7 +12,7 @@ import os
 import random
 import asyncio
 from collections import deque
-from datetime import datetime
+from datetime import datetime, timezone
 
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -90,7 +90,7 @@ def get_user(user_id: str) -> dict | None:
     return doc.to_dict() if doc.exists else None
 
 def save_user(user_id: str, data: dict):
-    data["updated_at"] = datetime.now(datetime.UTC).isoformat()
+    data["updated_at"] = datetime.now(timezone.utc).isoformat()
     db.collection("users").document(user_id).set(data, merge=True)
 
 def delete_user(user_id: str):
@@ -102,7 +102,7 @@ def is_banned(user_id: str) -> bool:
 
 def ban_user(user_id: str, reason: str = ""):
     db.collection("banned_users").document(user_id).set(
-        {"reason": reason, "banned_at": datetime.now(datetime.UTC).isoformat()}
+        {"reason": reason, "banned_at": datetime.now(timezone.utc).isoformat()}
     )
 
 def unban_user(user_id: str):
@@ -345,7 +345,7 @@ async def _finish_registration(update, context, user_id):
         "interest": temp.get("interest", "Just Chat 💬"),
         "chatting_with": None,
         "waiting_for_acceptance": False,
-        "joined_at": datetime.now(datetime.UTC).isoformat(),
+        "joined_at": datetime.now(timezone.utc).isoformat(),
         "chat_count": 0,
         "points": 10
     }
@@ -1089,8 +1089,6 @@ def main():
         logger.info("Running in POLLING mode (local dev)")
         app.run_polling()
 
-if __name__ == "__main__":
-    main()
 app_flask = Flask(__name__)
 
 @app_flask.route('/')
@@ -1101,10 +1099,8 @@ def run_web():
     port = int(os.environ.get("PORT", 10000))
     app_flask.run(host="0.0.0.0", port=port)
 
+# Start Flask web server in a background thread for Render/production port binding
 Thread(target=run_web).start()
 
-# 🔹 your bot setup
-TOKEN = "8732057518:AAGrlv6ubLdJvMSSxH_7u-B3ymMuccUr_C8"
-
-app = Application.builder().token(TOKEN).build()
-app.run_polling()
+if __name__ == "__main__":
+    main()
